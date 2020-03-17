@@ -11,7 +11,7 @@ public class PrimaryListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PrimaryListener.class);
 
-    @RabbitListener(queues = PRIMARY_QUEUE)
+    @RabbitListener(queues = PRIMARY_QUEUE, containerFactory = "containerFactory")
     public void onMessage(Message message) {
         LOGGER.info("Processing message {}", message);
         throw new RuntimeException("There was an error");
