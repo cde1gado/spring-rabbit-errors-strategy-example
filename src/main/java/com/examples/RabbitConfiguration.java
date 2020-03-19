@@ -1,4 +1,4 @@
-package com.example;
+package com.examples;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;

@@ -1,11 +1,11 @@
-package com.example;
+package com.examples;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 
-import static com.example.RabbitConfiguration.PRIMARY_QUEUE;
+import static com.examples.RabbitConfiguration.PRIMARY_QUEUE;
 
 public class PrimaryListener {
 
