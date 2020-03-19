@@ -5,7 +5,7 @@ import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,19 +63,24 @@ public class RabbitConfiguration {
     }
 
     @Bean
-    RetryOperationsInterceptor recovererInterceptor(RabbitTemplate rabbitTemplate) {
+    MessageRecoverer errorRecoverer(RabbitTemplate rabbitTemplate) {
+        return new ErrorRecoverer(rabbitTemplate, ERRORS_EXCHANGE, PARKING_LOT_QUEUE);
+    }
+
+    @Bean
+    RetryOperationsInterceptor errorRecovererInterceptor(MessageRecoverer errorRecoverer) {
         return RetryInterceptorBuilder.stateless()
                 .maxAttempts(1) // no retry, because it's blocking
-                .recoverer(new RepublishMessageRecoverer(rabbitTemplate, ERRORS_EXCHANGE, PARKING_LOT_QUEUE))
+                .recoverer(errorRecoverer)
                 .build();
     }
 
     @Bean
     public SimpleRabbitListenerContainerFactory containerFactory(ConnectionFactory connectionFactory,
-                                                                 RetryOperationsInterceptor recovererInterceptor) {
+                                                                 RetryOperationsInterceptor errorRecovererInterceptor) {
         SimpleRabbitListenerContainerFactory containerFactory = new SimpleRabbitListenerContainerFactory();
         containerFactory.setConnectionFactory(connectionFactory);
-        containerFactory.setAdviceChain(recovererInterceptor);
+        containerFactory.setAdviceChain(errorRecovererInterceptor);
         containerFactory.setDefaultRequeueRejected(defaultQueueRejected);
         return containerFactory;
     }
