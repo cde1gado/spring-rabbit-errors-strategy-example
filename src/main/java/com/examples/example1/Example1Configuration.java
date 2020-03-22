@@ -1,6 +1,6 @@
-package com.examples;
+package com.examples.example1;
 
-import org.springframework.amqp.core.*;
+import com.examples.common.ErrorRecoverer;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
 @Configuration
-public class RabbitConfiguration {
+public class Example1Configuration {
 
     @Value("${rabbit.exchange.errors}")
     private String errorsEx;
@@ -24,23 +24,8 @@ public class RabbitConfiguration {
     private boolean defaultQueueRejected;
 
     @Bean
-    DirectExchange errorsExchange() {
-        return new DirectExchange(errorsEx);
-    }
-
-    @Bean
-    Queue parkingLotQueue() {
-        return QueueBuilder.durable(parkingLotQ).build();
-    }
-
-    @Bean
-    Binding parkingLotBinding(Queue parkingLotQueue, DirectExchange errorsExchange) {
-        return BindingBuilder.bind(parkingLotQueue).to(errorsExchange).with(parkingLotQ);
-    }
-
-    @Bean
-    PrimaryListener primaryListener() {
-        return new PrimaryListener();
+    Primary1Listener primary1Listener() {
+        return new Primary1Listener();
     }
 
     @Bean

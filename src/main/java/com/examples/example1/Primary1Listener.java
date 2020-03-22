@@ -1,4 +1,4 @@
-package com.examples;
+package com.examples.example1;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,13 +8,13 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 
-public class PrimaryListener {
+public class Primary1Listener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PrimaryListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Primary1Listener.class);
 
     @RabbitListener(
             bindings = @QueueBinding(
-                    value = @Queue(value = "${rabbit.primary.queue}", durable = "true"),
+                    value = @Queue(value = "${rabbit.primary.queue1}", durable = "true"),
                     exchange = @Exchange(value = "${rabbit.exchange.events}"),
                     key = "${rabbit.primary.routing-key}"
             ),

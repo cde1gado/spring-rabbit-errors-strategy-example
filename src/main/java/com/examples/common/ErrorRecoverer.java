@@ -1,4 +1,4 @@
-package com.examples;
+package com.examples.common;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
