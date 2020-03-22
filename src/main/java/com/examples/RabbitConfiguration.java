@@ -14,47 +14,28 @@ import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 @Configuration
 public class RabbitConfiguration {
 
-    private static final String EVENTS_EXCHANGE = "events";
+    @Value("${rabbit.exchange.errors}")
+    private String errorsEx;
 
-    private static final String ERRORS_EXCHANGE = "errors";
+    @Value("${rabbit.parking-lot.queue}")
+    private String parkingLotQ;
 
-    public static final String PRIMARY_QUEUE = "example.primary.message";
-
-    private static final String PARKING_LOT_QUEUE = "parking-lot";
-
-    private static final String PRIMARY_ROUTING_KEY = "primary.message";
-
-    @Value("${default-requeue-rejected}")
+    @Value("${rabbit.default-requeue-rejected}")
     private boolean defaultQueueRejected;
 
     @Bean
-    DirectExchange eventsExchange() {
-        return new DirectExchange(EVENTS_EXCHANGE);
-    }
-
-    @Bean
     DirectExchange errorsExchange() {
-        return new DirectExchange(ERRORS_EXCHANGE);
-    }
-
-    @Bean
-    Queue primaryQueue() {
-        return QueueBuilder.durable(PRIMARY_QUEUE).build();
+        return new DirectExchange(errorsEx);
     }
 
     @Bean
     Queue parkingLotQueue() {
-        return QueueBuilder.durable(PARKING_LOT_QUEUE).build();
-    }
-
-    @Bean
-    Binding primaryBinding(Queue primaryQueue, DirectExchange eventsExchange) {
-        return BindingBuilder.bind(primaryQueue).to(eventsExchange).with(PRIMARY_ROUTING_KEY);
+        return QueueBuilder.durable(parkingLotQ).build();
     }
 
     @Bean
     Binding parkingLotBinding(Queue parkingLotQueue, DirectExchange errorsExchange) {
-        return BindingBuilder.bind(parkingLotQueue).to(errorsExchange).with(PARKING_LOT_QUEUE);
+        return BindingBuilder.bind(parkingLotQueue).to(errorsExchange).with(parkingLotQ);
     }
 
     @Bean
@@ -64,7 +45,7 @@ public class RabbitConfiguration {
 
     @Bean
     MessageRecoverer errorRecoverer(RabbitTemplate rabbitTemplate) {
-        return new ErrorRecoverer(rabbitTemplate, ERRORS_EXCHANGE, PARKING_LOT_QUEUE);
+        return new ErrorRecoverer(rabbitTemplate, errorsEx, parkingLotQ);
     }
 
     @Bean
