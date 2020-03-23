@@ -21,7 +21,7 @@ public class Example1Configuration {
     private String parkingLotQ;
 
     @Value("${rabbit.default-requeue-rejected}")
-    private boolean defaultQueueRejected;
+    private boolean defaultRequeueRejected;
 
     @Bean
     Primary1Listener primary1Listener() {
@@ -47,7 +47,7 @@ public class Example1Configuration {
         SimpleRabbitListenerContainerFactory containerFactory = new SimpleRabbitListenerContainerFactory();
         containerFactory.setConnectionFactory(connectionFactory);
         containerFactory.setAdviceChain(errorRecovererInterceptor);
-        containerFactory.setDefaultRequeueRejected(defaultQueueRejected);
+        containerFactory.setDefaultRequeueRejected(defaultRequeueRejected);
         return containerFactory;
     }
 }

@@ -17,7 +17,8 @@ public class Primary2Listener {
                     value = @Queue(value = "${rabbit.primary.queue2}", durable = "true"),
                     exchange = @Exchange(value = "${rabbit.exchange.events}"),
                     key = "${rabbit.primary.routing-key}"
-            )
+            ),
+            containerFactory = "retryContainerFactory"
     )
     public void onMessage(Message message) {
         LOGGER.info("Processing message {}", message);
