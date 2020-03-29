@@ -11,13 +11,13 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Optional;
 
+import static com.examples.common.ErrorHeader.*;
+
 public class RetrySenderListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RetrySenderListener.class);
 
     private static final String X_RETRIES = "x-retries";
-
-    private static final String X_ORIGINAL_QUEUE = "x-original-queue";
 
     private static final String NAMELESS_EXCHANGE = "";
 
@@ -65,11 +65,11 @@ public class RetrySenderListener {
     }
 
     private void removeErrorHeaders(Message message) {
-        message.getMessageProperties().getHeaders().remove("x-exception-cause");
-        message.getMessageProperties().getHeaders().remove("x-exception-message");
-        message.getMessageProperties().getHeaders().remove("x-exception-stacktrace");
-        message.getMessageProperties().getHeaders().remove("x-original-exchange");
-        message.getMessageProperties().getHeaders().remove("x-original-queue");
-        message.getMessageProperties().getHeaders().remove("x-original-routingKey");
+        message.getMessageProperties().getHeaders().remove(X_EXCEPTION_CAUSE);
+        message.getMessageProperties().getHeaders().remove(X_EXCEPTION_MESSAGE);
+        message.getMessageProperties().getHeaders().remove(X_EXCEPTION_STACKTRACE);
+        message.getMessageProperties().getHeaders().remove(X_ORIGINAL_EXCHANGE);
+        message.getMessageProperties().getHeaders().remove(X_ORIGINAL_QUEUE);
+        message.getMessageProperties().getHeaders().remove(X_ORIGINAL_ROUTING_KEY);
     }
 }

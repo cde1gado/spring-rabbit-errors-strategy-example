@@ -6,11 +6,10 @@ import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
 
 import java.util.Map;
 
+import static com.examples.common.ErrorHeader.X_EXCEPTION_CAUSE;
+import static com.examples.common.ErrorHeader.X_ORIGINAL_QUEUE;
+
 public class ErrorRecoverer extends RepublishMessageRecoverer {
-
-    private static final String X_ORIGINAL_QUEUE = "x-original-queue";
-
-    private static final String X_EXCEPTION_CAUSE = "x-exception-cause";
 
     public ErrorRecoverer(AmqpTemplate errorTemplate, String errorExchange, String errorRoutingKey) {
         super(errorTemplate, errorExchange, errorRoutingKey);
