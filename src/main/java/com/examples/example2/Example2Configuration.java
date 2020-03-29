@@ -18,30 +18,53 @@ public class Example2Configuration {
     @Value("${rabbit.exchange.errors}")
     private String errorsEx;
 
-    @Value("${rabbit.retry.queue}")
-    private String retryQ;
+    @Value("${rabbit.retry.manager.queue}")
+    private String retryManagerQ;
+
+    @Value("${rabbit.retry.sender.queue}")
+    private String retrySenderQ;
+
+    @Value("${rabbit.retry.wait.queue}")
+    private String waitQ;
+
+    @Value("${rabbit.retry.default-wait-time}")
+    private String defaultWaitTime; // millis
 
     @Value("${rabbit.default-requeue-rejected}")
     private boolean defaultRequeueRejected;
 
     @Bean
-    Queue retryQueue() {
-        return QueueBuilder.durable(retryQ).build();
+    Queue waitQueue() {
+        return QueueBuilder
+                .durable(waitQ)
+                .deadLetterExchange(errorsEx)
+                .deadLetterRoutingKey(retrySenderQ)
+                .build();
     }
 
     @Bean
-    Binding retryBinding(Queue retryQueue, DirectExchange errorsExchange) {
-        return BindingBuilder.bind(retryQueue).to(errorsExchange).with(retryQ);
+    Binding waitBinding(Queue waitQueue, DirectExchange errorsExchange) {
+        return BindingBuilder.bind(waitQueue).to(errorsExchange).with(waitQ);
     }
 
     @Bean
     MessageRecoverer retryRecoverer(RabbitTemplate rabbitTemplate) {
-        return new ErrorRecoverer(rabbitTemplate, errorsEx, retryQ);
+        return new ErrorRecoverer(rabbitTemplate, errorsEx, retryManagerQ);
     }
 
     @Bean
     Primary2Listener primary2Listener() {
         return new Primary2Listener();
+    }
+
+    @Bean
+    RetryManagerListener retryManagerListener(RabbitTemplate rabbitTemplate) {
+        return new RetryManagerListener(rabbitTemplate, defaultWaitTime, waitQ);
+    }
+
+    @Bean
+    RetrySenderListener retrySenderListener(RabbitTemplate rabbitTemplate) {
+        return new RetrySenderListener(rabbitTemplate);
     }
 
     @Bean
