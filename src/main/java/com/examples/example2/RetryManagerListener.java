@@ -9,20 +9,30 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.util.Optional;
+
 public class RetryManagerListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RetryManagerListener.class);
 
+    private static final String X_RETRIES = "x-retries";
+
     private RabbitTemplate rabbitTemplate;
+
+    private Integer maxAttemps;
 
     private String waitTime;
 
     private String waitQueue;
 
-    public RetryManagerListener(RabbitTemplate rabbitTemplate, String waitTime, String waitQueue) {
+    private String parkingLotQueue;
+
+    public RetryManagerListener(RabbitTemplate rabbitTemplate, RetryProperties properties, String parkingLotQueue) {
         this.rabbitTemplate = rabbitTemplate;
-        this.waitTime = waitTime;
-        this.waitQueue = waitQueue;
+        this.maxAttemps = properties.getDefaultMaxAttempts();
+        this.waitTime = properties.getDefaultWaitTime();
+        this.waitQueue = properties.getDefaultWaitQueue();
+        this.parkingLotQueue = parkingLotQueue;
     }
 
     @RabbitListener(
@@ -35,12 +45,23 @@ public class RetryManagerListener {
     )
     public void onMessage(Message message) {
         LOGGER.info("Processing failed message");
-        wait(message);
+        Integer retries = getRetries(message).orElse(0);
+        if (retries < maxAttemps) wait(message);
+        else discard(message);
+    }
+
+    private Optional<Integer> getRetries(Message message) {
+        return Optional.ofNullable(message.getMessageProperties().getHeader(X_RETRIES));
     }
 
     private void wait(Message message) {
         message.getMessageProperties().setExpiration(waitTime);
         rabbitTemplate.send(waitQueue, message);
         LOGGER.info("Waiting...");
+    }
+
+    private void discard(Message message) {
+        rabbitTemplate.send(parkingLotQueue, message);
+        LOGGER.info("The message has been discarded");
     }
 }

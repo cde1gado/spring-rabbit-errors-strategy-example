@@ -15,6 +15,8 @@ public class RetrySenderListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RetrySenderListener.class);
 
+    private static final String X_RETRIES = "x-retries";
+
     private static final String X_ORIGINAL_QUEUE = "x-original-queue";
 
     private static final String NAMELESS_EXCHANGE = "";
@@ -44,8 +46,18 @@ public class RetrySenderListener {
 
     private void retry(Message message, String originalQueue) {
         removeErrorHeaders(message);
+        incrementRetriesCounter(message);
         rabbitTemplate.send(NAMELESS_EXCHANGE, originalQueue, message);
         LOGGER.info("The message has been retried");
+    }
+
+    private void incrementRetriesCounter(Message message) {
+        Integer retries = getRetries(message).orElse(0);
+        message.getMessageProperties().setHeader(X_RETRIES, ++retries);
+    }
+
+    private Optional<Integer> getRetries(Message message) {
+        return Optional.ofNullable(message.getMessageProperties().getHeader(X_RETRIES));
     }
 
     private Optional<String> getOriginalQueue(Message message) {

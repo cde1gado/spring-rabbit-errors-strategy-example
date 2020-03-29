@@ -8,11 +8,13 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
 @Configuration
+@EnableConfigurationProperties(RetryProperties.class)
 public class Example2Configuration {
 
     @Value("${rabbit.exchange.errors}")
@@ -24,11 +26,11 @@ public class Example2Configuration {
     @Value("${rabbit.retry.sender.queue}")
     private String retrySenderQ;
 
-    @Value("${rabbit.retry.wait.queue}")
+    @Value("${rabbit.retry.default-wait-queue}")
     private String waitQ;
 
-    @Value("${rabbit.retry.default-wait-time}")
-    private String defaultWaitTime; // millis
+    @Value("${rabbit.parking-lot.queue}")
+    private String parkingLotQ;
 
     @Value("${rabbit.default-requeue-rejected}")
     private boolean defaultRequeueRejected;
@@ -58,8 +60,8 @@ public class Example2Configuration {
     }
 
     @Bean
-    RetryManagerListener retryManagerListener(RabbitTemplate rabbitTemplate) {
-        return new RetryManagerListener(rabbitTemplate, defaultWaitTime, waitQ);
+    RetryManagerListener retryManagerListener(RabbitTemplate rabbitTemplate, RetryProperties properties) {
+        return new RetryManagerListener(rabbitTemplate, properties, parkingLotQ);
     }
 
     @Bean
