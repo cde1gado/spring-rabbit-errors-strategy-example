@@ -1,37 +1,15 @@
 package com.examples.example2;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "rabbit.retry")
 public class RetryProperties {
 
-    private String defaultWaitQueue;
+    @Getter @Setter private String defaultWaitQueue;
 
-    private String defaultWaitTime;
+    @Getter @Setter private String defaultWaitTime;
 
-    private Integer defaultMaxAttempts;
-
-    public String getDefaultWaitQueue() {
-        return defaultWaitQueue;
-    }
-
-    public void setDefaultWaitQueue(String defaultWaitQueue) {
-        this.defaultWaitQueue = defaultWaitQueue;
-    }
-
-    public String getDefaultWaitTime() {
-        return defaultWaitTime;
-    }
-
-    public void setDefaultWaitTime(String defaultWaitTime) {
-        this.defaultWaitTime = defaultWaitTime;
-    }
-
-    public Integer getDefaultMaxAttempts() {
-        return defaultMaxAttempts;
-    }
-
-    public void setDefaultMaxAttempts(Integer defaultMaxAttempts) {
-        this.defaultMaxAttempts = defaultMaxAttempts;
-    }
+    @Getter @Setter private Integer defaultMaxAttempts;
 }
