@@ -50,23 +50,23 @@ public class Example2Configuration {
     }
 
     @Bean
-    MessageRecoverer retryRecoverer(RabbitTemplate rabbitTemplate) {
-        return new ErrorRecoverer(rabbitTemplate, errorsEx, retryManagerQ);
-    }
-
-    @Bean
     Primary2Listener primary2Listener() {
         return new Primary2Listener();
     }
 
     @Bean
-    RetryManagerListener retryManagerListener(RabbitTemplate rabbitTemplate, RetryProperties properties) {
-        return new RetryManagerListener(rabbitTemplate, properties, parkingLotQ);
+    RetryListener retryListener(RetryService retryService) {
+        return new RetryListener(retryService);
     }
 
     @Bean
-    RetrySenderListener retrySenderListener(RabbitTemplate rabbitTemplate) {
-        return new RetrySenderListener(rabbitTemplate);
+    RetryService retryService(RetryProperties retryProperties, RabbitTemplate rabbitTemplate) {
+        return new RetryService(retryProperties, rabbitTemplate, parkingLotQ);
+    }
+
+    @Bean
+    MessageRecoverer retryRecoverer(RabbitTemplate rabbitTemplate) {
+        return new ErrorRecoverer(rabbitTemplate, errorsEx, retryManagerQ);
     }
 
     @Bean

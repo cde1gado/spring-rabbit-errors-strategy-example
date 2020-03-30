@@ -3,44 +3,41 @@ package com.examples.example2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.Exchange;
-import org.springframework.amqp.rabbit.annotation.Queue;
-import org.springframework.amqp.rabbit.annotation.QueueBinding;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Optional;
 
 import static com.examples.common.ErrorHeader.*;
 
-public class RetrySenderListener {
+public class RetryService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RetrySenderListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RetryService.class);
 
     private static final String X_RETRIES = "x-retries";
 
     private static final String NAMELESS_EXCHANGE = "";
 
+    private RetryProperties retryProperties;
+
     private RabbitTemplate rabbitTemplate;
 
-    public RetrySenderListener(RabbitTemplate rabbitTemplate) {
+    private String parkingLotQueue;
+
+    public RetryService(RetryProperties retryProperties, RabbitTemplate rabbitTemplate, String parkingLotQueue) {
+        this.retryProperties = retryProperties;
         this.rabbitTemplate = rabbitTemplate;
+        this.parkingLotQueue = parkingLotQueue;
     }
 
-    @RabbitListener(
-            bindings = @QueueBinding(
-                    value = @Queue(value = "${rabbit.retry.sender.queue}", durable = "true"),
-                    exchange = @Exchange(value = "${rabbit.exchange.errors}"),
-                    key = "${rabbit.retry.sender.queue}"
-            ),
-            containerFactory = "retryContainerFactory"
-    )
-    public void onMessage(Message message) {
+    public void process(Message message) {
+        LOGGER.info("Processing failed message");
+        Integer retries = getRetries(message);
+        if (retries < retryProperties.getDefaultMaxAttempts()) wait(message);
+        else discard(message);
+    }
+
+    public void retry(Message message) {
         LOGGER.info("Retrying message");
-        retry(message);
-    }
-
-    private void retry(Message message) {
         getOriginalQueue(message).ifPresent(originalQueue -> retry(message, originalQueue));
     }
 
@@ -51,13 +48,26 @@ public class RetrySenderListener {
         LOGGER.info("The message has been retried");
     }
 
+    private void wait(Message message) {
+        message.getMessageProperties().setExpiration(retryProperties.getDefaultWaitTime());
+        rabbitTemplate.send(retryProperties.getDefaultWaitQueue(), message);
+        LOGGER.info("Waiting...");
+    }
+
+    private void discard(Message message) {
+        rabbitTemplate.send(parkingLotQueue, message);
+        LOGGER.info("The message has been discarded");
+    }
+
     private void incrementRetriesCounter(Message message) {
-        Integer retries = getRetries(message).orElse(0);
+        Integer retries = getRetries(message);
         message.getMessageProperties().setHeader(X_RETRIES, ++retries);
     }
 
-    private Optional<Integer> getRetries(Message message) {
-        return Optional.ofNullable(message.getMessageProperties().getHeader(X_RETRIES));
+    private Integer getRetries(Message message) {
+        return Optional
+                .ofNullable((Integer) message.getMessageProperties().getHeader(X_RETRIES))
+                .orElse(0);
     }
 
     private Optional<String> getOriginalQueue(Message message) {
