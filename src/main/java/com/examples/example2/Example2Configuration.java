@@ -14,20 +14,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
 @Configuration
-@EnableConfigurationProperties(RetryProperties.class)
+@EnableConfigurationProperties({RetryProperties.class, PolicyProperties.class, BackOffProperties.class})
 public class Example2Configuration {
 
     @Value("${rabbit.exchange.errors}")
     private String errorsEx;
-
-    @Value("${rabbit.retry.manager.queue}")
-    private String retryManagerQ;
-
-    @Value("${rabbit.retry.sender.queue}")
-    private String retrySenderQ;
-
-    @Value("${rabbit.retry.default-wait-queue}")
-    private String waitQ;
 
     @Value("${rabbit.parking-lot.queue}")
     private String parkingLotQ;
@@ -36,17 +27,17 @@ public class Example2Configuration {
     private boolean defaultRequeueRejected;
 
     @Bean
-    Queue waitQueue() {
+    Queue waitQueue(RetryProperties properties) {
         return QueueBuilder
-                .durable(waitQ)
+                .durable(properties.getWaitQueue())
                 .deadLetterExchange(errorsEx)
-                .deadLetterRoutingKey(retrySenderQ)
+                .deadLetterRoutingKey(properties.getSenderQueue())
                 .build();
     }
 
     @Bean
-    Binding waitBinding(Queue waitQueue, DirectExchange errorsExchange) {
-        return BindingBuilder.bind(waitQueue).to(errorsExchange).with(waitQ);
+    Binding waitBinding(Queue waitQueue, DirectExchange errorsExchange, RetryProperties properties) {
+        return BindingBuilder.bind(waitQueue).to(errorsExchange).with(properties.getWaitQueue());
     }
 
     @Bean
@@ -60,13 +51,26 @@ public class Example2Configuration {
     }
 
     @Bean
-    RetryService retryService(RetryProperties retryProperties, RabbitTemplate rabbitTemplate) {
-        return new RetryService(retryProperties, rabbitTemplate, parkingLotQ);
+    RetryPolicy policy(PolicyProperties properties) {
+        return new RetryPolicy(properties);
     }
 
     @Bean
-    MessageRecoverer retryRecoverer(RabbitTemplate rabbitTemplate) {
-        return new ErrorRecoverer(rabbitTemplate, errorsEx, retryManagerQ);
+    BackOffPolicy backOff(BackOffProperties properties) {
+        return new BackOffPolicy(properties);
+    }
+
+    @Bean
+    RetryService retryService(RetryProperties properties,
+                              RetryPolicy policy,
+                              BackOffPolicy backoff,
+                              RabbitTemplate rabbitTemplate) {
+        return new RetryService(properties, policy, backoff, rabbitTemplate, parkingLotQ);
+    }
+
+    @Bean
+    MessageRecoverer retryRecoverer(RabbitTemplate rabbitTemplate, RetryProperties properties) {
+        return new ErrorRecoverer(rabbitTemplate, errorsEx, properties.getManagerQueue());
     }
 
     @Bean

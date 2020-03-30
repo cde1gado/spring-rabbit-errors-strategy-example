@@ -13,26 +13,33 @@ public class RetryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RetryService.class);
 
-    private static final String X_RETRIES = "x-retries";
-
     private static final String NAMELESS_EXCHANGE = "";
 
-    private RetryProperties retryProperties;
+    private RetryProperties properties;
+
+    private RetryPolicy policy;
+
+    private BackOffPolicy backOff;
 
     private RabbitTemplate rabbitTemplate;
 
     private String parkingLotQueue;
 
-    public RetryService(RetryProperties retryProperties, RabbitTemplate rabbitTemplate, String parkingLotQueue) {
-        this.retryProperties = retryProperties;
+    public RetryService(RetryProperties properties,
+                        RetryPolicy policy,
+                        BackOffPolicy backOff,
+                        RabbitTemplate rabbitTemplate,
+                        String parkingLotQueue) {
+        this.properties = properties;
+        this.policy = policy;
+        this.backOff = backOff;
         this.rabbitTemplate = rabbitTemplate;
         this.parkingLotQueue = parkingLotQueue;
     }
 
     public void process(Message message) {
         LOGGER.info("Processing failed message");
-        Integer retries = getRetries(message);
-        if (retries < retryProperties.getDefaultMaxAttempts()) wait(message);
+        if (policy.isRetryable(message)) wait(message);
         else discard(message);
     }
 
@@ -41,16 +48,9 @@ public class RetryService {
         getOriginalQueue(message).ifPresent(originalQueue -> retry(message, originalQueue));
     }
 
-    private void retry(Message message, String originalQueue) {
-        removeErrorHeaders(message);
-        incrementRetriesCounter(message);
-        rabbitTemplate.send(NAMELESS_EXCHANGE, originalQueue, message);
-        LOGGER.info("The message has been retried");
-    }
-
     private void wait(Message message) {
-        message.getMessageProperties().setExpiration(retryProperties.getDefaultWaitTime());
-        rabbitTemplate.send(retryProperties.getDefaultWaitQueue(), message);
+        backOff.setWaitingTime(message);
+        rabbitTemplate.send(properties.getWaitQueue(), message);
         LOGGER.info("Waiting...");
     }
 
@@ -59,22 +59,18 @@ public class RetryService {
         LOGGER.info("The message has been discarded");
     }
 
-    private void incrementRetriesCounter(Message message) {
-        Integer retries = getRetries(message);
-        message.getMessageProperties().setHeader(X_RETRIES, ++retries);
-    }
-
-    private Integer getRetries(Message message) {
-        return Optional
-                .ofNullable((Integer) message.getMessageProperties().getHeader(X_RETRIES))
-                .orElse(0);
-    }
-
     private Optional<String> getOriginalQueue(Message message) {
         return Optional.ofNullable(message.getMessageProperties().getHeader(X_ORIGINAL_QUEUE));
     }
 
-    private void removeErrorHeaders(Message message) {
+    private void retry(Message message, String originalQueue) {
+        removePreviousErrorHeaders(message);
+        MessageUtils.incrementRetriesCounter(message);
+        rabbitTemplate.send(NAMELESS_EXCHANGE, originalQueue, message);
+        LOGGER.info("The message has been retried");
+    }
+
+    private void removePreviousErrorHeaders(Message message) {
         message.getMessageProperties().getHeaders().remove(X_EXCEPTION_CAUSE);
         message.getMessageProperties().getHeaders().remove(X_EXCEPTION_MESSAGE);
         message.getMessageProperties().getHeaders().remove(X_EXCEPTION_STACKTRACE);
