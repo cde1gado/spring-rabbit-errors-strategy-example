@@ -16,9 +16,9 @@ public class RetryListener {
 
     @RabbitListener(
             bindings = @QueueBinding(
-                    value = @Queue(value = "${rabbit.retry.manager-queue}", durable = "true"),
+                    value = @Queue(value = "${rabbit.retry.queue.manager}", durable = "true"),
                     exchange = @Exchange(value = "${rabbit.exchange.errors}"),
-                    key = "${rabbit.retry.manager-queue}"
+                    key = "${rabbit.retry.queue.manager}"
             ),
             containerFactory = "retryContainerFactory"
     )
@@ -28,9 +28,9 @@ public class RetryListener {
 
     @RabbitListener(
             bindings = @QueueBinding(
-                    value = @Queue(value = "${rabbit.retry.sender-queue}", durable = "true"),
+                    value = @Queue(value = "${rabbit.retry.queue.sender}", durable = "true"),
                     exchange = @Exchange(value = "${rabbit.exchange.errors}"),
-                    key = "${rabbit.retry.sender-queue}"
+                    key = "${rabbit.retry.queue.sender}"
             ),
             containerFactory = "retryContainerFactory"
     )

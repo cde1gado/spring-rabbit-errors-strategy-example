@@ -8,9 +8,10 @@ rabbit:
     queue2: example2.primary.message
     routing-key: primary.message
   retry:
-    manager-queue: retry-manager
-    sender-queue: retry-sender
-    wait-queue: wait-queue
+    queue:
+      manager: example2.retry.manager
+      sender: example2.retry.sender
+      wait: example2.retry.wait
     policy:
       max-attempts: 3
       error-types: [ java.lang.RuntimeException ]

@@ -15,7 +15,7 @@ public class RetryService {
 
     private static final String NAMELESS_EXCHANGE = "";
 
-    private RetryProperties properties;
+    private RetryQueueProperties properties;
 
     private RetryPolicy policy;
 
@@ -25,7 +25,7 @@ public class RetryService {
 
     private String parkingLotQueue;
 
-    public RetryService(RetryProperties properties,
+    public RetryService(RetryQueueProperties properties,
                         RetryPolicy policy,
                         BackOffPolicy backOff,
                         RabbitTemplate rabbitTemplate,
@@ -50,7 +50,7 @@ public class RetryService {
 
     private void wait(Message message) {
         backOff.setWaitingTime(message);
-        rabbitTemplate.send(properties.getWaitQueue(), message);
+        rabbitTemplate.send(properties.getWait(), message);
         LOGGER.info("Waiting...");
     }
 
