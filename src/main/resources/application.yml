@@ -1,0 +1,22 @@
+rabbit:
+  default-requeue-rejected: false
+  exchange:
+    events: events
+    errors: errors
+  primary:
+    queue1: example1.primary.message
+    queue2: example2.primary.message
+    routing-key: primary.message
+  retry:
+    manager-queue: retry-manager
+    sender-queue: retry-sender
+    wait-queue: wait-queue
+    policy:
+      max-attempts: 3
+      error-types: [ java.lang.RuntimeException ]
+    back-off:
+      init: 10000
+      max: 60000
+      multiplier: 2
+  parking-lot:
+    queue: parking-lot
