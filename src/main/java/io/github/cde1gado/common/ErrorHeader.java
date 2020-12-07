@@ -1,4 +1,4 @@
-package com.examples.common;
+package io.github.cde1gado.common;
 
 public final class ErrorHeader {
 

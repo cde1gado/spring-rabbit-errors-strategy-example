@@ -1,4 +1,4 @@
-package com.examples.example2;
+package io.github.cde1gado.example1;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,17 +8,17 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 
-public class Primary2Listener {
+public class Primary1Listener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Primary2Listener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Primary1Listener.class);
 
     @RabbitListener(
             bindings = @QueueBinding(
-                    value = @Queue(value = "${rabbit.primary.queue2}", durable = "true"),
+                    value = @Queue(value = "${rabbit.primary.queue1}", durable = "true"),
                     exchange = @Exchange(value = "${rabbit.exchange.events}"),
                     key = "${rabbit.primary.routing-key}"
             ),
-            containerFactory = "retryContainerFactory"
+            containerFactory = "containerFactory"
     )
     public void onMessage(Message message) {
         LOGGER.info("Processing message {}", message);
