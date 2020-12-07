@@ -1,11 +1,11 @@
-package com.examples.example2;
+package io.github.cde1gado.example2;
 
 import org.springframework.amqp.core.Message;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.examples.common.ErrorHeader.X_EXCEPTION_CAUSE;
+import static io.github.cde1gado.common.ErrorHeader.X_EXCEPTION_CAUSE;
 
 public class RetryPolicy {
 

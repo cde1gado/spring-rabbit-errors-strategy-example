@@ -1,4 +1,4 @@
-package com.examples.common;
+package io.github.cde1gado.common;
 
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;

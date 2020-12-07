@@ -1,4 +1,4 @@
-package com.examples.example2;
+package io.github.cde1gado.example2;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.Exchange;

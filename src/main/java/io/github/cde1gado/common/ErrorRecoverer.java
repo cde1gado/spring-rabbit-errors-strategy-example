@@ -1,4 +1,4 @@
-package com.examples.common;
+package io.github.cde1gado.common;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
@@ -6,8 +6,8 @@ import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
 
 import java.util.Map;
 
-import static com.examples.common.ErrorHeader.X_EXCEPTION_CAUSE;
-import static com.examples.common.ErrorHeader.X_ORIGINAL_QUEUE;
+import static io.github.cde1gado.common.ErrorHeader.X_EXCEPTION_CAUSE;
+import static io.github.cde1gado.common.ErrorHeader.X_ORIGINAL_QUEUE;
 
 public class ErrorRecoverer extends RepublishMessageRecoverer {
 

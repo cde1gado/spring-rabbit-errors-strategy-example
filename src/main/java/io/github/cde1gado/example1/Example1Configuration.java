@@ -1,6 +1,6 @@
-package com.examples.example1;
+package io.github.cde1gado.example1;
 
-import com.examples.common.ErrorRecoverer;
+import io.github.cde1gado.common.ErrorRecoverer;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

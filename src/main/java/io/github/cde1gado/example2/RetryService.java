@@ -1,4 +1,4 @@
-package com.examples.example2;
+package io.github.cde1gado.example2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Optional;
 
-import static com.examples.common.ErrorHeader.*;
+import static io.github.cde1gado.common.ErrorHeader.*;
 
 public class RetryService {
 
